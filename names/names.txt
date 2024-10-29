@@ -1,0 +1,32 @@
+Message-ID: <8359202.7584105892345.JavaMail.evans@thyme>
+Date: Thu, 22 Oct 2024 14:22:00 -0700 (PDT)
+From: marketing.lead@company.com
+To: team.assistant@company.com
+Subject: Planning for the Launch Event
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-From: Marketing Lead
+X-To: Team Assistant <Team Assistant/Company/Marketing@Company>
+X-cc:
+X-bcc:
+X-Folder: \ExMerge - Marketing Lead'Sent Mail
+X-Origin: MARKETING-LEAD
+X-FileName: marketinglead.pst
+
+Hi,
+
+I hope everything’s going well with you! I wanted to check in regarding the upcoming product launch event next Friday. We’re in the final stretch, and it’s looking great so far. Thanks for your hard work coordinating the logistics.
+
+I spoke with Emily from the PR team earlier today, and she mentioned that the guest list is almost finalized. We’re expecting around 75 people, including clients, press, and a few influencers. Could you please confirm that catering will be set for that number? We’ve had some late RSVPs, so I want to ensure we don’t run short on food or drinks.
+
+Also, James in Creative sent over the updated designs for the event banners, and they look fantastic. Could you check with the print vendor to make sure they’ll be delivered on time? I know we’ve had some tight deadlines in the past, but I want to avoid any last-minute issues this time around.
+
+For the program itself, I think it would be great if we kick off with a brief introduction by CEO, followed by a short product demo. After that, we can have an open networking session for everyone to mingle. I’ve already asked Sarah from Operations to manage the demo setup, but let me know if you need any help with the equipment or space.
+
+Lastly, I think we should send out a reminder email to all the attendees a day before the event, just to confirm the time and location.
+
+Let me know if there’s anything I’m missing or anything else we need to address before the big day. Thanks again for your support!
+
+Best regards,
+Marketing Lead
