@@ -17,3 +17,5 @@ Spacy Language Component | https://spacy.io/api/language#component | Used as ref
 Spacy Doc | https://spacy.io/api/doc | Used as reference while adding custom attributes to Doc and creating custom components.
 
 Spacy Pipelines | https://spacy.io/usage/processing-pipelines#analysis | Used to understand how spacy pipelines and components work.
+
+NLTK Wordnet | https://www.nltk.org/howto/wordnet.html | Used as reference to implement function to fetch synonyms of a word.

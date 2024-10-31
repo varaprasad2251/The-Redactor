@@ -3,6 +3,23 @@ import pytest
 from redactor import *
 from unittest.mock import patch
 
+
+def test_redact_concepts():
+    text = "This is a house. Pls do not enter."
+    concept = ['house']
+    actual_txt, actual_count = redact_concepts(text, concept)
+    expected_txt, expected_count = "████████████████ Pls do not enter.", 1
+    assert expected_txt == actual_txt
+    assert expected_count == actual_count
+
+def test_get_synonyms():
+    actual = get_synonyms("house")
+    assert "mansion" in actual
+
+def test_download_nltk_resources():
+    download_nltk_resources()
+    assert 1 == 1
+
 def test_redact_address():
     nlp = spacy.load("en_core_web_trf")
     nlp.add_pipe("redact_address")
@@ -41,7 +58,7 @@ def test_process_files():
     concept = ""
     output_dir = "tests/"
     actual = process_files(file, censor_flags, concept, output_dir)
-    expected = [('file.txt', {'redacted addresses': 0, 'redacted dates': 0, 'redacted names': 0, 'redacted phones': 2})]
+    expected = [('file.txt', {'redacted phones': 2})]
     assert expected == actual
 
 
@@ -51,7 +68,7 @@ def test_redaction():
     concept = ""
     x, y = redaction(txt, censor_flags, concept)
     expected_x = "Number 1 : ███ ███ ████ Number 2: ████████████"
-    expected_y = {'redacted addresses': 0, 'redacted dates': 0, 'redacted names': 0, 'redacted phones': 2}
+    expected_y = {'redacted phones': 2}
     assert expected_x == x
     assert expected_y == y
 

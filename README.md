@@ -46,6 +46,8 @@ Folder `tests` contains pytest test files.
 
 Folder `img` contain images used in README.md file
 
+Folder `files` is used to store output redacted files used for sample testing.
+
 
 ### To Run The Code
 
@@ -77,7 +79,14 @@ pipenv run python -m pytest -v
 
 For redaction process, I have implemented custom components for redacting different types of data. I have created
 four custom components `redact_names, redact_dates, redact_phones, redact_address` which redact `names, dates, phones, addresses`
-respectively in the doc.
+respectively in the doc. I have also implemented `redact_concepts` function which redacts sentences in the text that are related to
+any keyword (and its synonyms) in the `concepts` list.
+
+The `stats` include number of items redacted for each censor flag type at file level, and total number of redacted items
+across all files.
+
+A Sample Stats written to stdout is attached below:
+  ![sample_stats](img/sample_stats.png)
 
 ### Functions
 The `redactor.py` contain all the functions implemented for this project. Here is the description of each function.
@@ -140,9 +149,33 @@ The `redactor.py` contain all the functions implemented for this project. Here i
   One pattern identifies multi line addresses while the other is to identify single line addresses.
   This function performs redaction of addresses and returns a new `doc` with redacted addresses.
 
+* #### download_nltk_resources()
+  This function is to download and install nltk data packages `punkt`, `wordnet`, `punkt_tab`.
+
+
+* #### get_synonyms(word)
+  This function takes input a word and return the synonyms of that word using NLTK's WordNet.
+  It returns the synonyms as a set.
+
+* #### redact_concepts(text, concepts)
+  This function is used to redact sentences for each of the concept in the list `concepts`. For redaction, this function
+  fetches the synonyms for each of the concept and then use these words to identify the sentences containing them.
+  If any of these synonyms or the actual concept word is present in any sentence in the text, then the whole sentence is
+  redacted. This function returns the `redacted text`, `redacted concepts count` after performing redaction for all concepts.
+  
+  Note: For redacting concepts, nltk sentence tokenizer is used to split text into sentences. If a sentence contains any concept related word,
+  then whole sentence will be redacted. There is a chance that some of the cases might not be redacted as expected, due to word not identified as synonym
+  or sentences not properly tokenized.
+
 ### Testcases
 The `test_redactor.py` under `tests/` directory contain all the test functions implemented for this project. These tests cover the functions inside `redactor.py` file.
 Here is the description of each test function.
+
+* `test_redact_concepts()` This function tests the functionality of function `redact_concepts()`
+
+* `test_get_synonyms()` This function tests the functionality of function `get_synonyms()`
+
+* `test_download_nltk_resources()` This function tests the functionality of function `download_nltk_resources()`
 
 * `test_redact_address()` This function tests the functionality of function `redact_address()`
 

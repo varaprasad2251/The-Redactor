@@ -8,7 +8,10 @@ from spacy.tokens import Doc, Token
 import re
 import sys
 import warnings
-
+import nltk
+from nltk.corpus import wordnet
+from nltk.tokenize import sent_tokenize
+import ssl
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -48,6 +51,7 @@ def write_all_stats(all_stats, write_stats_to):
         with open(write_stats_to, 'w') as file:
             file.write(final_stats)
 
+
 def get_files(input):
     all_files = []
     for _glob in input:
@@ -68,8 +72,14 @@ def read_file(file_name):
         print(f"The file - {file_name} cannot be read.")
         return ""
 
+
 def redaction(txt, censor_flags, concept):
     nlp = spacy.load("en_core_web_trf")
+    redacted_concepts_count = 0
+    if concept:
+        download_nltk_resources()
+        txt, redacted_concepts_count = redact_concepts(txt, concept)
+
     for flag in censor_flags:
         if flag == "names":
             nlp.add_pipe("redact_names", last=True)
@@ -80,12 +90,17 @@ def redaction(txt, censor_flags, concept):
         if flag == "address":
             nlp.add_pipe("redact_address", last=True)
     doc = nlp(txt)
-    file_stats = {
-        "redacted names": doc._.redact_names_count,
-        "redacted dates": doc._.redact_dates_count,
-        "redacted phones": doc._.redact_phones_count,
-        "redacted addresses": doc._.redact_address_count,
-    }
+    file_stats = {}
+    if "names" in censor_flags:
+        file_stats["redacted names"] = doc._.redact_names_count
+    if "dates" in censor_flags:
+        file_stats["redacted dates"] = doc._.redact_dates_count
+    if "phones" in censor_flags:
+        file_stats["redacted phones"] = doc._.redact_phones_count
+    if "address" in censor_flags:
+        file_stats["redacted addresses"] = doc._.redact_address_count
+    if concept:
+        file_stats["redacted concepts"] = redacted_concepts_count
     return doc.text, file_stats
 
 
@@ -186,12 +201,6 @@ def redact_dates(doc):
         if block not in text[start:end]:
             text = text[:start] + block * (end - start) + text[end:]
             dates_redacted_count += 1
-    date_field_pattern = r'Date:.*?(?=\n)'
-    date_field_match = re.search(date_field_pattern, text)
-    if date_field_match:
-        start, end = date_field_match.span()
-        text = text[:start] + 'Date: ' + block * (end - start - 6) + text[end:]
-        dates_redacted_count += 1
     new_tokens = []
     new_spaces = []
     for token in doc:
@@ -241,6 +250,9 @@ def redact_address(doc):
         r"(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Rd|Road|Dr|Drive|Way|Ln|Lane|Ct|Court|Pl|Place|Broadway)"
         r"(?:,\s?[A-Za-z0-9\s]+)?\b"
     )
+    location_pattern = (
+        r"\b(?:[A-Za-z]+(?:\s[A-Za-z]+)*)?\s?(?:University|Hospital|Park|Center|Institute|School|Plaza|Building|Station)\b"
+    )
 
     matches = list(re.finditer(multiline_address_pattern, text, re.MULTILINE))
     for match in reversed(matches):
@@ -260,9 +272,6 @@ def redact_address(doc):
         text = text[:start] + block * (end - start) + text[end:]
         address_redaction_count += 1
 
-    location_pattern = (
-        r"\b(?:[A-Za-z]+(?:\s[A-Za-z]+)*)?\s?(?:University|Hospital|Park|Center|Institute|School|Plaza|Building|Station)\b"
-    )
     matches = list(re.finditer(location_pattern, text))
     for match in reversed(matches):
         start, end = match.span()
@@ -277,6 +286,49 @@ def redact_address(doc):
     redacted_doc = Doc(doc.vocab, words=new_tokens, spaces=new_spaces)
     redacted_doc._.redact_address_count = address_redaction_count
     return redacted_doc
+
+
+def download_nltk_resources():
+    try:
+        _create_unverified_https_context = ssl._create_unverified_context
+    except AttributeError:
+        pass
+    else:
+        ssl._create_default_https_context = _create_unverified_https_context
+    nltk.download('punkt', quiet=True)
+    nltk.download('wordnet', quiet=True)
+    nltk.download('punkt_tab', quiet=True)
+
+
+def get_synonyms(word):
+    related_words = set([word.lower()])
+    for syn in wordnet.synsets(word):
+        for lemma in syn.lemmas():
+            related_words.add(lemma.name().lower())
+    return related_words
+
+
+def redact_concepts(text, concepts):
+    download_nltk_resources()
+    all_concepts_synonyms = set()
+    for concept in concepts:
+        all_concepts_synonyms.update(get_synonyms(concept))
+    lines = text.split('\n')
+    redacted_lines = []
+    redacted_concepts_count = 0
+    for line in lines:
+        sentences = nltk.sent_tokenize(line)
+        redacted_sentences = []
+        for sentence in sentences:
+            words = set(re.findall(r'\w+', sentence.lower()))
+            if words.intersection(all_concepts_synonyms):
+                redacted_sentences.append(block * len(sentence))
+                redacted_concepts_count += 1
+            else:
+                redacted_sentences.append(sentence)
+        redacted_lines.append(' '.join(redacted_sentences))
+    redacted_text = '\n'.join(redacted_lines)
+    return redacted_text, redacted_concepts_count
 
 
 if __name__ == '__main__':
@@ -294,7 +346,7 @@ if __name__ == '__main__':
 
     write_stats_to = None
     censor_flags = []
-
+    concepts = None
     if args.names:
         censor_flags.append("names")
     if args.dates:
@@ -303,9 +355,11 @@ if __name__ == '__main__':
         censor_flags.append("phones")
     if args.address:
         censor_flags.append("address")
+    if args.concept:
+        concepts = args.concept
     if args.stats:
         write_stats_to = args.stats
 
-    main(args.input, censor_flags, args.concept, args.output, write_stats_to)
+    main(args.input, censor_flags, concepts, args.output, write_stats_to)
 
 
