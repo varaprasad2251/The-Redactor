@@ -1,4 +1,6 @@
-# CIS6930 Fall 24 Project 1
+# The Redactor
+
+## CIS6930 Fall 24 Project 1
 
 ## Name : Chenna Kesava Varaprasad Korlapati
 
